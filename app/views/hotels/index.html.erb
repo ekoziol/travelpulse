@@ -1,0 +1,39 @@
+<h1>Listing hotels</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Interger</th>
+      <th>Integer</th>
+      <th>String</th>
+      <th>String</th>
+      <th>Float</th>
+      <th>String</th>
+      <th>Interger</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @hotels.each do |hotel| %>
+      <tr>
+        <td><%= hotel.interger %></td>
+        <td><%= hotel.integer %></td>
+        <td><%= hotel.string %></td>
+        <td><%= hotel.string %></td>
+        <td><%= hotel.float %></td>
+        <td><%= hotel.string %></td>
+        <td><%= hotel.interger %></td>
+        <td><%= link_to 'Show', hotel %></td>
+        <td><%= link_to 'Edit', edit_hotel_path(hotel) %></td>
+        <td><%= link_to 'Destroy', hotel, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Hotel', new_hotel_path %>
