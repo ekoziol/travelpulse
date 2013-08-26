@@ -61,6 +61,40 @@ class TripsController < ApplicationController
     end
   end
 
+  def home
+
+  end
+
+  def search
+    @travel = params[:search]
+    dateStart = params[:dateStart]
+    @possibleFlights = fakeFlightAPI(100, dateStart).sort {|x, y| x["flightDate"] <=> y["flightDate"]}
+
+
+    render :planner
+  end
+
+  def fakeFlightAPI(n, dateStart)
+    a = []
+    dateStart = Date.strptime(dateStart, "%m/%d/%Y")
+    for i in 0..n
+      tempCompany = flightCompany()
+      tempPrice = rand(100..1000)
+      tempDate = Time.at(((dateStart + 60).to_time.to_f - dateStart.to_time.to_f)*rand + dateStart.to_time.to_f)
+      a.push({"airlineCompany" => tempCompany, "flightPrice" => tempPrice, "flightDate" => tempDate})
+    end
+    return a
+  end
+
+  def flightCompany
+    companies = ["United", "Delta", "American", "Southwest"]
+    return companies[rand(0..companies.size-1)]
+  end
+
+  def planner
+    
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_trip

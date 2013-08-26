@@ -1,4 +1,7 @@
 Travelpulse::Application.routes.draw do
+  get 'trips/home' => 'trips#home'
+  get 'trips/search' => 'trips#search'
+
   resources :trips
 
   resources :hotels
@@ -7,11 +10,12 @@ Travelpulse::Application.routes.draw do
 
   resources :users
 
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
   # You can have the root of your site routed with "root"
-  # root 'welcome#index'
+  root 'trips#home'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
