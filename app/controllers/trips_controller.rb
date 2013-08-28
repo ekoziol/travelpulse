@@ -68,20 +68,93 @@ class TripsController < ApplicationController
   def search
     @travel = params[:search]
     dateStart = params[:dateStart]
-    @possibleFlights = fakeFlightAPI(100, dateStart).sort {|x, y| x["flightDate"] <=> y["flightDate"]}
+    duration = params[:duration].to_i
+    @possibleFlights = fakeFlightAPI(200, dateStart).sort {|x, y| x["startDate"] <=> y["startDate"]}
+    
+    possibleTravelStartDates = 
+      @possibleFlights.map do |hash|
+        {startDate: hash["startDate"].to_date}
+      end
+    
+    possibleTravelStartDates = possibleTravelStartDates.uniq
 
+    #possibleTravelEndDates = possibleTravelStartDates.map{|x| x[:startDate] + duration}
 
+    possibleTravelDates = []
+    possibleTravelStartDates.each do |x|
+      possibleTravelDates.push ({"startDate" => x[:startDate], "endDate" => x[:startDate] + duration})
+    end
+
+    @possibleHotels = fakeHotelAPI(possibleTravelDates)
+    @possibleRentalCars = fakeRentalCarAPI(possibleTravelDates)
+    @travelDateInfo = []
+
+    possibleTravelDates.each do |date|
+      @travelDateInfo.push({"startDate" => date["startDate"], 
+        "endDate" => date["endDate"], 
+        "minPrice" => (minKey(filterListByKey(@possibleHotels, "startDate", date["startDate"]), "price")
+        + minKey(filterListByKey(@possibleFlights, "startDate", date["startDate"]), "price")
+        + minKey(filterListByKey(@possibleRentalCars, "startDate", date["startDate"]), "price")),
+      "maxPrice" => (maxKey(filterListByKey(@possibleHotels, "startDate", date["startDate"]), "price")
+        + maxKey(filterListByKey(@possibleFlights, "startDate", date["startDate"]), "price")
+        + maxKey(filterListByKey(@possibleRentalCars, "startDate", date["startDate"]), "price"))
+        })
+    end
+
+    @travelDateInfo = @travelDateInfo.reject {|t| t["minPrice"] > t["maxPrice"]}
     render :planner
   end
 
+  def filterListByKey(list, key, value)
+    return list.select{|x| x[key] == value}
+  end
+  
+  def minKey(list, key)
+    if list.empty?
+      return 100000000
+    else
+      return list.sort_by{|v| v[key]}.first[key]
+    end
+  end
+
+  def maxKey(list, key)
+    if list.empty?
+      return 0
+    else
+      return list.sort_by{|v| v[key]}.last[key]
+    end
+  end
+  
   def fakeFlightAPI(n, dateStart)
     a = []
-    dateStart = Date.strptime(dateStart, "%m/%d/%Y")
+    dateStart = Date.parse(dateStart, "%m/%d/%Y")
     for i in 0..n
       tempCompany = flightCompany()
       tempPrice = rand(100..1000)
       tempDate = Time.at(((dateStart + 60).to_time.to_f - dateStart.to_time.to_f)*rand + dateStart.to_time.to_f)
-      a.push({"airlineCompany" => tempCompany, "flightPrice" => tempPrice, "flightDate" => tempDate})
+      a.push({"airlineCompany" => tempCompany, "price" => tempPrice, "startDate" => tempDate})
+    end
+    return a
+  end
+
+  def fakeHotelAPI(dates)
+    a = []
+    companies = ["Hilton", "Holiday Inn", "Holiday Inn Express", "Marriott", "Double Tree", "Best Western", "Motel 6"]
+    dates.each do |date|
+      for j in 0..companies.size
+        a.push({"hotelCompany" => companies[j], "price" => rand(50..200)*(date["endDate"]-date["startDate"]), "startDate" => date["startDate"], "endDate" => date["endDate"]})
+      end
+    end
+    return a
+  end
+
+  def fakeRentalCarAPI(dates)
+    a = []
+    companies = ["Hertz", "Budget", "Thrifty", "Alamo", "Enterprise",]
+    dates.each do |date|
+      for j in 0..companies.size
+        a.push({"rentalCarCompany" => companies[j], "price" => rand(15..100)*(date["endDate"]-date["startDate"]), "startDate" => date["startDate"], "endDate" => date["endDate"]})
+      end
     end
     return a
   end
@@ -89,6 +162,11 @@ class TripsController < ApplicationController
   def flightCompany
     companies = ["United", "Delta", "American", "Southwest"]
     return companies[rand(0..companies.size-1)]
+  end
+
+  def hotelCompany
+    
+    
   end
 
   def planner
