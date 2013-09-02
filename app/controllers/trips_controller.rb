@@ -101,7 +101,7 @@ class TripsController < ApplicationController
         })
     end
 
-    @travelDateInfo = @travelDateInfo.reject {|t| t["minPrice"] > t["maxPrice"]}
+    @travelDateInfo = @travelDateInfo.reject {|t| t["minPrice"] > t["maxPrice"]}.to_json
     render :planner
   end
 
