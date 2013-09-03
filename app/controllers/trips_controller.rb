@@ -62,7 +62,7 @@ class TripsController < ApplicationController
   end
 
   def home
-
+    render :nothing => true
   end
 
   def search
