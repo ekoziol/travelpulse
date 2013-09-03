@@ -1,0 +1,194 @@
+<h1>Trip planning</h1>
+<%= "Looks like we will be traveling to " + @travel %>
+
+<h3>Here are some possible flights</h3>
+<!-- <% @possibleFlights.each do |flight| %>
+<p><%=flight["airlineCompany"]%> | $<%=flight["price"]%> | <%=flight["startDate"]%></p>
+<% end %>
+
+<% @possibleHotels.each do |x| %>
+<p> <%= x %> </p>
+<%end %>
+
+<% @possibleRentalCars.each do |x| %>
+<p> <%= x %> </p>
+<%end %> -->
+
+<!-- <%= @travelDateInfo %> -->
+
+<div id="tooltip" class="hidden">
+        <p><strong id="myDates">Dates</strong></p>
+        <p><span id="value">100</span></p>
+</div>
+
+<script type="text/javascript">
+	
+	function filterDate(fDate, date) {
+		//alert("fDate = " + fDate + " | date = " + date)
+		if(fDate == date){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
+
+	var dataset = <%= @travelDateInfo.to_s.html_safe %>;
+	var flights = <%= @possibleFlights.to_json.to_s.html_safe %>;
+	var hotels = <%= @possibleHotels.to_json.to_s.html_safe %>;
+	var rentalCars = <%= @possibleRentalCars.to_json.to_s.html_safe %>;
+	//w and h
+
+
+	//Width and height
+	var w = 800;
+	var h = 600;
+	var padding = 40;
+	
+	var xScale = d3.scale.ordinal()
+					.domain(d3.range(dataset.length))
+					.rangeRoundBands([padding, w-padding], 0.05);
+
+	var yScale = d3.scale.linear()
+					.domain([0, d3.max(dataset,function(d){
+						return Math.max(d.maxPrice) + 200;
+					})])
+					.range([padding,h-padding]);
+	//Define X axis
+	var xAxis = d3.svg.axis()
+					  .scale(xScale)
+					  .orient("bottom")
+					  .ticks(5);
+
+	//Define Y axis
+	var yAxis = d3.svg.axis()
+					  .scale(yScale)
+					  .orient("left")
+					  .ticks(5);
+
+
+
+	//Create SVG element
+	var svg = d3.select("body")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h);
+
+	//Create bars
+	svg.selectAll("rect")
+	   .data(dataset)
+	   .enter()
+	   .append("rect")
+	   .attr("x", function(d, i) {
+	   		return xScale(i);
+	   })
+	   .attr("y", function(d) {
+	   		return yScale(d.minPrice);
+	   })
+	   .attr("width", xScale.rangeBand())
+	   .attr("height", function(d) {
+	   		return yScale(d.maxPrice - d.minPrice);
+	   })
+	   .attr("fill", function(d) {
+			return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/5)) + ",0)";
+	   })
+	   .on("mouseover", function(d) {
+
+			//Get this bar's x/y values, then augment for the tooltip
+			var xPosition = parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
+			var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
+
+			//Update the tooltip position and value
+			d3.select("#tooltip")
+				.style("left", xPosition + "px")
+				.style("top", yPosition + "px")						
+				.select("#value")
+				.text(" $" + d.minPrice + " - $" + d.maxPrice);
+			
+			d3.select("#tooltip")
+				.style("left", xPosition + "px")
+				.style("top", yPosition + "px")							
+				.select("#myDates")
+				.text(d.startDate + " to " + d.endDate);
+	   
+			//Show the tooltip
+			d3.select("#tooltip").classed("hidden", false);
+
+	   })
+	   .on("mouseout", function() {
+	   
+			//Hide the tooltip
+			d3.select("#tooltip").classed("hidden", true);
+			
+	   })
+	   .on("click", function(d){
+	   		var filterFlights = ""
+		   	$.each(flights, function(k, v){
+
+		   		if(filterDate(flights[k].startDate.substring(0,flights[k].startDate.indexOf("T")), d.startDate) == true)
+		   		{
+		   			filterFlights = filterFlights + "<p>" + flights[k].airlineCompany +
+		   							" - $" + flights[k].price + " at  " + flights[k].startDate + "</p>"
+		   		}
+		   	});
+		   	var filterHotels= ""
+		   	$.each(hotels, function(k, v){
+
+		   		if(filterDate(hotels[k].startDate, d.startDate) == true)
+		   		{
+		   			filterHotels = filterHotels + "<p>" + hotels[k].hotelCompany +
+		   							" - $" + hotels[k].price + "</p>"
+		   		}
+		   	});
+		   	var filterRentalCars = ""
+		   	$.each(rentalCars, function(k, v){
+
+		   		if(filterDate(rentalCars[k].startDate, d.startDate) == true)
+		   		{
+		   			filterRentalCars = filterRentalCars + "<p>" + rentalCars[k].rentalCarCompany +
+		   							" - $" + rentalCars[k].price + "</p>"
+		   		}
+		   	});
+	   		
+	   		$('#flights').html(filterFlights);
+	   		$('#hotels').html(filterHotels);
+	   		$('#rentalCars').html(filterRentalCars);
+	   		$('#travelDate').text(d.startDate + " to " + d.endDate)
+	  //  		svg.selectAll("rect")
+	  //  			.attr("fill", function(d) {
+			// 	return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/5)) + ",0)";
+			// }
+
+			d3.select(this)
+			   .style("fill", "blue");
+	   })
+	   
+  	//Create X axis
+	svg.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate(0," + (h - padding) + ")")
+		.call(xAxis);
+	
+	//Create Y axis
+	svg.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate(" + padding + ",0)")
+		.call(yAxis);
+	
+
+			
+
+</script>
+
+<div id="travelInfo">
+		<h3 id="travelDate">Date</h3>
+        <p><strong id="flightTitle">Flights</strong></p>
+        <p><span id="flights">flights</span></p>
+
+        <p><strong id="hotelTitle">Hotels</strong></p>
+        <p><span id="hotels">Here they are</span></p>
+
+        <p><strong id="rentalCarTitle">Rental Cars</strong></p>
+        <p><span id="rentalCars">Here they are</span></p>
+</div>
