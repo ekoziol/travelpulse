@@ -1,6 +1,7 @@
 Travelpulse::Application.routes.draw do
   get 'trips/home' => 'trips#home'
   get 'trips/search' => 'trips#search'
+  get 'trips/graphAjax' => 'trips#graphAjax'
 
   resources :trips
 

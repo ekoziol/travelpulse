@@ -75,7 +75,7 @@ class TripsController < ApplicationController
       @possibleFlights.map do |hash|
         {startDate: hash["startDate"].to_date}
       end
-    
+
     possibleTravelStartDates = possibleTravelStartDates.uniq
 
     #possibleTravelEndDates = possibleTravelStartDates.map{|x| x[:startDate] + duration}
@@ -103,6 +103,10 @@ class TripsController < ApplicationController
 
     @travelDateInfo = @travelDateInfo.reject {|t| t["minPrice"] > t["maxPrice"]}.to_json
     render :planner
+  end
+
+  def graphAjax()
+        return params[:list].select{|x| x["startDate"] == params[:value]}.to_json
   end
 
   def filterListByKey(list, key, value)
