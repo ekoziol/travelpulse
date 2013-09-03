@@ -62,7 +62,7 @@ class TripsController < ApplicationController
   end
 
   def home
-    
+
   end
 
   def search
@@ -117,7 +117,7 @@ class TripsController < ApplicationController
     if list.empty?
       return 100000000
     else
-      return list.sort_by{|v| v[key]}.first[key]
+      return list.sort_by{|v| v[key]}.first[key].to_i
     end
   end
 
@@ -125,7 +125,7 @@ class TripsController < ApplicationController
     if list.empty?
       return 0
     else
-      return list.sort_by{|v| v[key]}.last[key]
+      return list.sort_by{|v| v[key]}.last[key].to_i
     end
   end
   
