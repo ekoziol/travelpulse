@@ -25,8 +25,8 @@ ActiveRecord::Schema.define(version: 20130820032156) do
     t.float    "cost"
     t.string   "provider"
     t.string   "class"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string "created_at"
+    t.string "updated_at"
   end
 
   create_table "hotels", force: true do |t|
@@ -37,8 +37,8 @@ ActiveRecord::Schema.define(version: 20130820032156) do
     t.float    "cost"
     t.string   "provider"
     t.integer  "tripID"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string "created_at"
+    t.string "updated_at"
   end
 
   create_table "trips", force: true do |t|
@@ -49,8 +49,8 @@ ActiveRecord::Schema.define(version: 20130820032156) do
     t.float    "maxCost"
     t.string   "startDestination"
     t.string   "endDestination"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string "created_at"
+    t.string "updated_at"
   end
 
   create_table "users", force: true do |t|
@@ -58,8 +58,8 @@ ActiveRecord::Schema.define(version: 20130820032156) do
     t.string   "email"
     t.string   "password"
     t.string   "preference"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string "created_at"
+    t.string "updated_at"
   end
 
 end

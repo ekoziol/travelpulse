@@ -4,8 +4,8 @@ class CreateFlights < ActiveRecord::Migration
       t.integer :tripId
       t.string :flightTo
       t.string :flightFrom
-      t.integer :datetimeDepart
-      t.integer :datetimeArrive
+      t.string :datetimeDepart
+      t.string :datetimeArrive
       t.float :cost
       t.string :provider
       t.string :class

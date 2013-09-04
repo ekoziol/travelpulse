@@ -1,8 +1,8 @@
 class CreateHotels < ActiveRecord::Migration
   def change
     create_table :hotels do |t|
-      t.integer :dateArrive
-      t.integer :dateDepart
+      t.string :dateArrive
+      t.string :dateDepart
       t.string :name
       t.string :address
       t.float :cost

@@ -1,8 +1,8 @@
 class CreateTrips < ActiveRecord::Migration
   def change
     create_table :trips do |t|
-      t.integer :dateStart
-      t.integer :dateEnd
+      t.string :dateStart
+      t.string :dateEnd
       t.float :cost
       t.float :minCost
       t.float :maxCost
