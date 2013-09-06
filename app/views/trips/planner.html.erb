@@ -101,12 +101,12 @@
 		.attr("y", function(d) {
 			return yScale(d.minPrice);
 		})
-		.attr("width", "0.75em")
+		.attr("width", "0.70em")
 		.attr("height", function(d) {
 			return yScale(d.maxPrice - d.minPrice);
 		})
 		.attr("fill", function(d) {
-			return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/20)) + ",0)";
+			return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/5)) + ",0)";
 		})
 		.on("mouseover", function(d) {
 
