@@ -33,6 +33,14 @@
 		}
 	}
 
+	// function convertDateTimeToDate(date){
+	// 	if(date.indexOf("T") == -1){
+	// 		return new Date(date.substring(0,date.indexOf("T")));
+	// 	}
+	// 	else{
+	// 		return date
+	// 	}
+	// }
 
 	var dataset = <%= @travelDateInfo.to_s.html_safe %>;
 	var flights = <%= @possibleFlights.to_json.to_s.html_safe %>;
@@ -45,135 +53,165 @@
 	var w = 800;
 	var h = 600;
 	var padding = 40;
+	var minDate = new Date(dataset[0].startDate);
+	var maxDate = new Date(dataset[dataset.length-1].startDate);
+	maxDate.setDate(maxDate.getDate()+3);
+	//alert("mindate = " + minDate + " | maxDate = " + maxDate);
 	
-	var xScale = d3.scale.ordinal()
-					.domain(d3.range(dataset.length))
-					.rangeRoundBands([padding, w-padding], 0.05);
+	// var minDate = new Date(2013,8,10);
+	// var maxDate = new Date(2013,10,1);
+
+		var xScale = d3.time.scale()
+						.domain([minDate,maxDate])
+						.range([2*padding+1, w-padding]);
 
 	var yScale = d3.scale.linear()
 					.domain([0, d3.max(dataset,function(d){
-						return Math.max(d.maxPrice) + 200;
+						return Math.max(d.maxPrice)*1.2;
 					})])
-					.range([padding,h-padding]);
+					.range([padding,h-2*padding]);
 	//Define X axis
 	var xAxis = d3.svg.axis()
-					  .scale(xScale)
-					  .orient("bottom")
-					  .ticks(5);
+					.scale(xScale)
+					.orient("bottom")
+					.ticks(5);
 
 	//Define Y axis
 	var yAxis = d3.svg.axis()
-					  .scale(yScale)
-					  .orient("left")
-					  .ticks(5);
+					.scale(yScale)
+					.orient("left")
+					.ticks(5);
 
 
 
 	//Create SVG element
 	var svg = d3.select("body")
-				.append("svg")
-				.attr("width", w)
-				.attr("height", h);
+	.append("svg")
+	.attr("width", w)
+	.attr("height", h);
 
 	//Create bars
 	svg.selectAll("rect")
-	   .data(dataset)
-	   .enter()
-	   .append("rect")
-	   .attr("x", function(d, i) {
-	   		return xScale(i);
-	   })
-	   .attr("y", function(d) {
-	   		return yScale(d.minPrice);
-	   })
-	   .attr("width", xScale.rangeBand())
-	   .attr("height", function(d) {
-	   		return yScale(d.maxPrice - d.minPrice);
-	   })
-	   .attr("fill", function(d) {
-			return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/5)) + ",0)";
-	   })
-	   .on("mouseover", function(d) {
+		.data(dataset)
+		.enter()
+		.append("rect")
+		.attr("x", function(d) {
+			return xScale(new Date(d.startDate));
+		})
+		.attr("y", function(d) {
+			return yScale(d.minPrice);
+		})
+		.attr("width", "0.75em")
+		.attr("height", function(d) {
+			return yScale(d.maxPrice - d.minPrice);
+		})
+		.attr("fill", function(d) {
+			return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/20)) + ",0)";
+		})
+		.on("mouseover", function(d) {
 
 			//Get this bar's x/y values, then augment for the tooltip
-			var xPosition = parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
+			var xPosition = parseFloat(d3.select(this).attr("x")) + 0.05 / 2;
 			var yPosition = parseFloat(d3.select(this).attr("y")) / 2 + h / 2;
 
 			//Update the tooltip position and value
 			d3.select("#tooltip")
 				.style("left", xPosition + "px")
-				.style("top", yPosition + "px")						
+				.style("top", yPosition + "px")	
 				.select("#value")
 				.text(" $" + d.minPrice + " - $" + d.maxPrice);
-			
+
 			d3.select("#tooltip")
 				.style("left", xPosition + "px")
-				.style("top", yPosition + "px")							
+				.style("top", yPosition + "px")	
 				.select("#myDates")
 				.text(d.startDate + " to " + d.endDate);
-	   
+
 			//Show the tooltip
 			d3.select("#tooltip").classed("hidden", false);
 
-	   })
-	   .on("mouseout", function() {
-	   
-			//Hide the tooltip
-			d3.select("#tooltip").classed("hidden", true);
-			
-	   })
-	   .on("click", function(d){
-	   		var filterFlights = ""
-		   	$.each(flights, function(k, v){
+			})
+			.on("mouseout", function() {
 
-		   		if(filterDate(flights[k].startDate.substring(0,flights[k].startDate.indexOf("T")), d.startDate) == true)
-		   		{
-		   			filterFlights = filterFlights + "<p>" + flights[k].airlineCompany +
-		   							" - $" + flights[k].price + " at  " + flights[k].startDate + "</p>"
-		   		}
-		   	});
-		   	var filterHotels= ""
-		   	$.each(hotels, function(k, v){
+				//Hide the tooltip
+				d3.select("#tooltip").classed("hidden", true);
 
-		   		if(filterDate(hotels[k].startDate, d.startDate) == true)
-		   		{
-		   			filterHotels = filterHotels + "<p>" + hotels[k].hotelCompany +
-		   							" - $" + hotels[k].price + "</p>"
-		   		}
-		   	});
-		   	var filterRentalCars = ""
-		   	$.each(rentalCars, function(k, v){
+			})
+			.on("click", function(d){
+				var filterFlights = ""
+				$.each(flights, function(k, v){
 
-		   		if(filterDate(rentalCars[k].startDate, d.startDate) == true)
-		   		{
-		   			filterRentalCars = filterRentalCars + "<p>" + rentalCars[k].rentalCarCompany +
-		   							" - $" + rentalCars[k].price + "</p>"
-		   		}
-		   	});
-	   		
-	   		$('#flights').html(filterFlights);
-	   		$('#hotels').html(filterHotels);
-	   		$('#rentalCars').html(filterRentalCars);
-	   		$('#travelDate').text(d.startDate + " to " + d.endDate)
-	  //  		svg.selectAll("rect")
-	  //  			.attr("fill", function(d) {
-			// 	return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/5)) + ",0)";
+				if(filterDate(flights[k].startDate.substring(0,flights[k].startDate.indexOf("T")), d.startDate) == true)
+				{
+					filterFlights = filterFlights + "<p>" + flights[k].airlineCompany +
+					" - $" + flights[k].price + " at " + flights[k].startDate + "</p>"
+				}
+				});
+				var filterHotels= ""
+				$.each(hotels, function(k, v){
+
+				if(filterDate(hotels[k].startDate, d.startDate) == true)
+				{
+					filterHotels = filterHotels + "<p>" + hotels[k].hotelCompany +
+					" - $" + hotels[k].price + "</p>"
+				}
+				});
+				var filterRentalCars = ""
+				$.each(rentalCars, function(k, v){
+
+				if(filterDate(rentalCars[k].startDate, d.startDate) == true)
+				{
+					filterRentalCars = filterRentalCars + "<p>" + rentalCars[k].rentalCarCompany +
+					" - $" + rentalCars[k].price + "</p>"
+				}
+			});
+
+			$('#flights').html(filterFlights);
+			$('#hotels').html(filterHotels);
+			$('#rentalCars').html(filterRentalCars);
+			$('#travelDate').text(d.startDate + " to " + d.endDate)
+			// svg.selectAll("rect")
+			// .attr("fill", function(d) {
+			// return "rgb(0," + (255 - ((d.maxPrice - d.minPrice)/2/5)) + ",0)";
 			// }
 
 			d3.select(this)
-			   .style("fill", "blue");
-	   })
+			.style("fill", "blue");
+	})
 	   
   	//Create X axis
 	svg.append("g")
+		.attr("class", "xaxis")
 		.attr("class", "axis")
-		.attr("transform", "translate(0," + (h - padding) + ")")
+		.attr("transform", "translate(0," + (h - 2*padding) + ")")
 		.call(xAxis);
+
+	// svg.selectAll(".xaxis text")  // select all the text elements for the xaxis
+ //          .attr("transform", function(d) {
+ //              return "translate(" + this.getBBox().height*-2 + "," + this.getBBox().height + ")rotate(-45)";
+ //        });
 	
+	svg.append("text")
+	   .attr("class", "x label")
+	   .attr("text-anchor", "end")
+	   .attr("x", w)
+	   .attr("y", h-2*padding-6)
+	   .text("Travel Start Date");
+
+	svg.append("text")
+	   .attr("class", "y label")
+	   .attr("text-anchor", "end")
+	   .attr("dy", "1.5em")
+	   .attr("y", padding)
+	   .attr("transform", "rotate(-90)")
+	   .text("Price ($)");
+
+
 	//Create Y axis
 	svg.append("g")
-		.attr("class", "axis")
-		.attr("transform", "translate(" + padding + ",0)")
+		.attr("class", "yaxis")
+		.attr("class", "axis")	
+		.attr("transform", "translate(" + 2*padding + ",0)")
 		.call(yAxis);
 	
 

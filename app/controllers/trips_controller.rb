@@ -92,12 +92,12 @@ class TripsController < ApplicationController
     possibleTravelDates.each do |date|
       @travelDateInfo.push({"startDate" => date["startDate"], 
         "endDate" => date["endDate"], 
-        "minPrice" => (minKey(filterListByKey(@possibleHotels, "startDate", date["startDate"]), "price")
-        + minKey(filterListByKey(@possibleFlights, "startDate", date["startDate"]), "price")
-        + minKey(filterListByKey(@possibleRentalCars, "startDate", date["startDate"]), "price")),
-      "maxPrice" => (maxKey(filterListByKey(@possibleHotels, "startDate", date["startDate"]), "price")
-        + maxKey(filterListByKey(@possibleFlights, "startDate", date["startDate"]), "price")
-        + maxKey(filterListByKey(@possibleRentalCars, "startDate", date["startDate"]), "price"))
+        "minPrice" => (minKey(filterListByKey(@possibleFlights, "startDate", date["startDate"]), "price") +
+                     minKey(filterListByKey(@possibleHotels, "startDate", date["startDate"]), "price") +
+                     minKey(filterListByKey(@possibleRentalCars, "startDate", date["startDate"]), "price")),
+        "maxPrice" => (maxKey(filterListByKey(@possibleFlights, "startDate", date["startDate"]), "price") +
+                     maxKey(filterListByKey(@possibleHotels, "startDate", date["startDate"]), "price") +
+                     maxKey(filterListByKey(@possibleRentalCars, "startDate", date["startDate"]), "price"))
         })
     end
 
@@ -110,7 +110,11 @@ class TripsController < ApplicationController
   end
 
   def filterListByKey(list, key, value)
-    return list.select{|x| x[key] == value}
+    if key == "startDate"
+      return list.select{|x| x[key].to_date == value}
+    else
+      return list.select{|x| x[key] == value}
+    end
   end
   
   def minKey(list, key)
@@ -145,7 +149,7 @@ class TripsController < ApplicationController
     a = []
     companies = ["Hilton", "Holiday Inn", "Holiday Inn Express", "Marriott", "Double Tree", "Best Western", "Motel 6"]
     dates.each do |date|
-      for j in 0..companies.size
+      for j in 0..companies.size-1
         a.push({"hotelCompany" => companies[j], "price" => rand(50..200)*(date["endDate"]-date["startDate"]), "startDate" => date["startDate"], "endDate" => date["endDate"]})
       end
     end
@@ -156,7 +160,7 @@ class TripsController < ApplicationController
     a = []
     companies = ["Hertz", "Budget", "Thrifty", "Alamo", "Enterprise",]
     dates.each do |date|
-      for j in 0..companies.size
+      for j in 0..companies.size-1
         a.push({"rentalCarCompany" => companies[j], "price" => rand(15..100)*(date["endDate"]-date["startDate"]), "startDate" => date["startDate"], "endDate" => date["endDate"]})
       end
     end
