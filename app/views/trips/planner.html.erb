@@ -1,20 +1,11 @@
 <h1>Trip planning</h1>
 <%= "Looks like we will be traveling to " + @travel %>
 
+
 <h3>Here are some possible flights</h3>
-<!-- <% @possibleFlights.each do |flight| %>
-<p><%=flight["airlineCompany"]%> | $<%=flight["price"]%> | <%=flight["startDate"]%></p>
-<% end %>
 
-<% @possibleHotels.each do |x| %>
-<p> <%= x %> </p>
-<%end %>
 
-<% @possibleRentalCars.each do |x| %>
-<p> <%= x %> </p>
-<%end %> -->
-
-<!-- <%= @travelDateInfo %> -->
+<p id="calendarDates">Dates</p>
 
 <div id="tooltip" class="hidden">
         <p><strong id="myDates">Dates</strong></p>
@@ -24,7 +15,7 @@
 <script type="text/javascript">
 	
 	function filterDate(fDate, date) {
-		//alert("fDate = " + fDate + " | date = " + date)
+		//w("fDate = " + fDate + " | date = " + date)
 		if(fDate == date){
 			return true;
 		}
@@ -33,6 +24,7 @@
 		}
 	}
 
+	
 	// function convertDateTimeToDate(date){
 	// 	if(date.indexOf("T") == -1){
 	// 		return new Date(date.substring(0,date.indexOf("T")));
@@ -53,15 +45,20 @@
 	var w = 800;
 	var h = 600;
 	var padding = 40;
-	var minDate = new Date(dataset[0].startDate);
-	var maxDate = new Date(dataset[dataset.length-1].startDate);
-	maxDate.setDate(maxDate.getDate()+3);
+	var minDate = Date.parse(dataset[0].startDate).clearTime();
+	var maxDate = Date.parse(dataset[dataset.length-1].startDate).clearTime();
+	maxDate = maxDate.add(3).days();
+
+	// var minDate = new Date(dataset[0].startDate);
+	// var maxDate = new Date(dataset[dataset.length-1].startDate);
+
 	//alert("mindate = " + minDate + " | maxDate = " + maxDate);
-	
+	//alert(Date.parse(dataset[0].startDate).getMonth());
 	// var minDate = new Date(2013,8,10);
 	// var maxDate = new Date(2013,10,1);
+	//console.log(minDate + " | " + maxDate);
 
-		var xScale = d3.time.scale()
+	var xScale = d3.time.scale()
 						.domain([minDate,maxDate])
 						.range([2*padding+1, w-padding]);
 
@@ -129,6 +126,12 @@
 
 			//Show the tooltip
 			d3.select("#tooltip").classed("hidden", false);
+			
+			//Adjust the calendar dates
+			$('#calendarDates').text(d.startDate + " to " + d.endDate);
+			
+
+
 
 			})
 			.on("mouseout", function() {
@@ -214,8 +217,143 @@
 		.attr("transform", "translate(" + 2*padding + ",0)")
 		.call(yAxis);
 	
+	// Create calendar
 
-			
+	var calW = 200;
+	var calH = 600;
+	var cellSize = 20;
+	var calX = 0;
+	var calY = 0;
+	var calMonth = -1;
+	var calData = createCalendarDates(minDate,maxDate);
+
+	//alert(Date.today().toString("dddd"));
+
+	var calSvg = d3.select("body")
+				   .append("svg")
+				   .attr("width", calW)
+				   .attr("height", calH);
+
+	calSvg.selectAll("rect")
+		  .data(calData)
+		  .enter()
+		  .append("rect")
+		  .attr("class", "calendarRect")
+		  .attr("x", function(d){
+		  	return cellX(d);
+		  })
+		  .attr("y", function(d){
+		  	return cellY(d);
+		  })
+		  .attr("width", cellSize)
+		  .attr("height", cellSize)
+		  .attr("fill", "#ccffff");
+	
+	calY = -25;
+	calSvg.selectAll("text")
+		  .data(calData)
+		  .enter()
+		  .append("text")
+		  .attr("x", function(d){
+		  	return cellX(d);
+		  })
+		  .attr("y", function(d){
+		  	return cellY(d);
+		  })
+		  //.attr("text-anchor", "right")
+		  .text(function(d){
+		  	return d.toString("d")
+		  });
+
+	function cellX(d){
+		var dayOfWeek = d.toString("dddd");
+
+		return (cellSize + 1)*dayOfWeekNumeric(dayOfWeek) + calX;
+	}
+
+	function cellY(d){
+		if(calMonth == -1){
+			calMonth = d.toString("MMMM");
+			calY = 40;
+			monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+			return calY;
+		}
+
+		if(dayOfWeekNumeric(d.toString("dddd")) == 0){
+			calY += cellSize + 1;
+		}
+
+		if(calMonth != d.toString("MMMM")){
+			calY += 60;
+			calMonth = d.toString("MMMM");
+			monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+		}
+		return calY;
+
+	}
+
+	function monthTitle(month){
+		calSvg.append("text")
+			  .attr("y", function(){
+			  	return calY - 20;
+			  })
+			  .attr("x", 20)
+			  .text(month);
+	}
+
+	function dayOfWeekNumeric(day){
+		day = day.toString().toLowerCase();
+
+		if(day == "sunday"){
+			return 0
+		}
+		if(day == "monday"){
+			return 1
+		}
+		if(day == "tuesday"){
+			return 2
+		}
+		if(day == "wednesday"){
+			return 3
+		}
+		if(day == "thursday"){
+			return 4
+		}
+		if(day == "friday"){
+			return 5
+		}
+		if(day == "saturday"){
+			return 6
+		}
+		else{
+			return null;
+		}
+
+	}
+
+	function createCalendarDates(startDate,endDate){
+	
+
+		firstCalendarDay = startDate.moveToFirstDayOfMonth();
+		lastCalendarDay = endDate.moveToLastDayOfMonth();
+
+		tempDate = firstCalendarDay;
+
+		calendarDateRange = [];
+		//calendarDateRange.push(tempDate);
+
+		while((tempDate - lastCalendarDay) < 0){
+			//console.log(tempDate);			
+			calendarDateRange.push(new Date(tempDate));
+			tempDate = tempDate.add(1).days();
+		}
+		return calendarDateRange;
+	}
+	
+	
+	//console.log(dateRange);	
+
+
 
 </script>
 
