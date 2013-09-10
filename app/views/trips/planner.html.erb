@@ -12,6 +12,13 @@
         <p><span id="value">100</span></p>
 </div>
 
+<table>
+	<tr>
+		<td id="graph"></td>
+		<td id="calendar"></td>
+	</tr>
+</table>
+
 <script type="text/javascript">
 	
 	function filterDate(fDate, date) {
@@ -127,9 +134,28 @@
 			//Show the tooltip
 			d3.select("#tooltip").classed("hidden", false);
 			
+						
+			d3.selectAll(".calendarRect")
+			  .attr("fill", "#ccffff");
+
+			tempDate = Date.parse(d.startDate);
+			//console.log(tempDate);
+			//console.log(Date.parse(d.endDate) - tempDate);
+			//calendarDateRange.push(tempDate);
+
+			while(tempDate - Date.parse(d.endDate) < 1){			
+				var selectDate = "#" + tempDate.toString("MMMM") + "-" + tempDate.toString("d");
+				//console.log(selectDate);
+				d3.select(selectDate)
+				  .attr("fill", "#ff6600");
+				tempDate = tempDate.add(1).days();
+				//console.log(tempDate);
+			}
+			
+
 			//Adjust the calendar dates
 			$('#calendarDates').text(d.startDate + " to " + d.endDate);
-			
+			//console.log(d.toString("MMMM") +"-"+ d.toString("d"));
 
 
 
@@ -226,7 +252,7 @@
 	var calY = 0;
 	var calMonth = -1;
 	var calData = createCalendarDates(minDate,maxDate);
-
+	//console.log(calData);
 	//alert(Date.today().toString("dddd"));
 
 	var calSvg = d3.select("body")
@@ -243,13 +269,18 @@
 		  	return cellX(d);
 		  })
 		  .attr("y", function(d){
-		  	return cellY(d);
+		  	return cellY(d,1);
 		  })
 		  .attr("width", cellSize)
 		  .attr("height", cellSize)
-		  .attr("fill", "#ccffff");
+		  .attr("fill", "#ccffff")
+		  .attr("id", function(d){
+		  	//console.log(d.toString("MMMM") +"-"+ d.toString("d"));
+		  	return d.toString("MMMM") +"-"+ d.toString("d");
+		  });
 	
 	calY = -25;
+	//c = [];
 	calSvg.selectAll("text")
 		  .data(calData)
 		  .enter()
@@ -258,24 +289,31 @@
 		  	return cellX(d);
 		  })
 		  .attr("y", function(d){
+		  	if(d.toString("d") == 1){
+		  		//c.push(calY);
+		  		monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+		  	}
 		  	return cellY(d);
 		  })
 		  //.attr("text-anchor", "right")
 		  .text(function(d){
-		  	return d.toString("d")
+		  	
+		  	return d.toString("d");
 		  });
-
+	//console.log(c);
 	function cellX(d){
 		var dayOfWeek = d.toString("dddd");
 
 		return (cellSize + 1)*dayOfWeekNumeric(dayOfWeek) + calX;
 	}
 
-	function cellY(d){
+	function cellY(d, text){
 		if(calMonth == -1){
 			calMonth = d.toString("MMMM");
 			calY = 40;
-			monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+			// if(text == 1){
+			// 	monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+			// }
 			return calY;
 		}
 
@@ -286,7 +324,9 @@
 		if(calMonth != d.toString("MMMM")){
 			calY += 60;
 			calMonth = d.toString("MMMM");
-			monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+			// if(text == 1){
+			// 	monthTitle(d.toString("MMMM") + " " + d.toString("yyyy"));
+			// }
 		}
 		return calY;
 
@@ -295,7 +335,7 @@
 	function monthTitle(month){
 		calSvg.append("text")
 			  .attr("y", function(){
-			  	return calY - 20;
+			  	return calY+40;
 			  })
 			  .attr("x", 20)
 			  .text(month);
@@ -342,7 +382,7 @@
 		calendarDateRange = [];
 		//calendarDateRange.push(tempDate);
 
-		while((tempDate - lastCalendarDay) < 0){
+		while((tempDate - lastCalendarDay) < 1){
 			//console.log(tempDate);			
 			calendarDateRange.push(new Date(tempDate));
 			tempDate = tempDate.add(1).days();
